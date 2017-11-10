@@ -5,6 +5,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 import os
 
+# clean the string read from the english transcript (NOT IPA, English words)
+# on the webpage
 def clean_string(s):
     # replaces non-breaking spaces with spaces and collapses all whitespace runs
     return " ".join(str(s).replace("\u00A0", " ").split())
@@ -28,8 +30,8 @@ def get_net_file_contents(fileurl):
         content = net_file_handle.read()
     return content
 
-# basically wget: fetch data from fileurl over http and dump it
-# in a file named localpath
+# basically wget: fetch data from fileurl over http and dump it in a
+# file named localpath
 def save_net_file(fileurl, localpath):
     with get_net_file_handle(fileurl) as net_file_handle:
         with open(localpath, "wb") as target_file:
