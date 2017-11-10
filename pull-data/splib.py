@@ -65,10 +65,6 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
-    print("Audio: ", audio_url)
-    print("Image: ", image_url)
-    print("Speech text: ", speech_text)
-
     html_content = None
     overwrite_text(speech_text, target_directory + "english.txt")
     speech_text = None
@@ -76,9 +72,11 @@ def fetch_accent_archive(speaker_id, target_directory):
     save_net_file(image_url, target_directory + "ipa.gif")
 
 if __name__ == "__main__":
-    archive_id = 86
-    try:
-        fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
-    except Exception as e:
-        print("Error fetching data for subject id {0}: {1}".format(86, e))
-
+    archive_id_list = [86]
+    for archive_id in archive_id_list:
+        try:
+            print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
+            fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
+            print("done.")
+        except Exception as e:
+            print(" Error fetching data for subject id {0}: {1}".format(86, e))
