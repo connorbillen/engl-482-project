@@ -13,16 +13,13 @@ def clean_string(s):
 
 # gets a urllib(2) file handle to a remote file
 def get_net_file_handle(fileurl):
-    try:
-        webfile = urllib.request.urlopen(fileurl)
-    except URLError as e:
-        raise e
-
+    webfile = urllib.request.urlopen(fileurl)
     req_code = webfile.getcode()
+    
     if req_code < 200 or req_code >= 300:
         raise IOError("HTTP error {0} connecting to {1}".format(req_code, fileurl))
-
-    return webfile
+    else:
+        return webfile
 
 # reads a remote file and returns the contents
 def get_net_file_contents(fileurl):
@@ -41,15 +38,17 @@ def save_net_file(fileurl, localpath):
                 target_file.write(byte)
                 byte = net_file_handle.read(1)
 
+# overwrite a file's contents with some text
 def overwrite_text(text, localpath):
     with open(localpath, "w") as target_file:
         target_file.write(text)
 
+# would extract the extension from a filename
 def extract_extension(fname):
     return ""
 
-# for right now, just scrapes the given speaker_id page for the
-# urls and english text and prints them
+# scrapes the transcription image, speech text, and audio for a speaker and
+# stores them in the target directory
 def fetch_accent_archive(speaker_id, target_directory):
     target_directory += "/"
     os.makedirs(target_directory, exist_ok=True)
@@ -67,6 +66,7 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
+    # saves the data to files
     html_content = None
     overwrite_text(speech_text, target_directory + "english.txt")
     speech_text = None
@@ -81,4 +81,4 @@ if __name__ == "__main__":
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
             print("done.")
         except Exception as e:
-            print(" Error fetching data for subject id {0}: {1}".format(86, e))
+            print("Error fetching data for subject id {0}: {1}".format(86, e))
