@@ -67,9 +67,7 @@ def fetch_accent_archive(speaker_id, target_directory):
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
-    html_content = None
     overwrite_text(speech_text, target_directory + "english.txt")
-    speech_text = None
     save_net_file(audio_url, target_directory + "audio.mp3")
     save_net_file(image_url, target_directory + "ipa.gif")
 
