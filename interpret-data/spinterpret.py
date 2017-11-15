@@ -35,6 +35,7 @@ if __name__ == "__main__":
     word_matcher.set_seq2(common_text_words)
     word_matcher.set_seq1(vary_text_words)
 
+    # overall ratio which considers slightly different words to be totally different
     print("Overall ratio: {}".format(word_matcher.ratio()))
 
     nwords = len(common_text_words)
