@@ -2,6 +2,7 @@
 
 import string
 import urllib.request
+from GMULib import SpeakerGetter
 from bs4 import BeautifulSoup
 import os
 
@@ -72,7 +73,9 @@ def fetch_accent_archive(speaker_id, target_directory):
     save_net_file(image_url, target_directory + "ipa.gif")
 
 if __name__ == "__main__":
-    archive_id_list = [86]
+    speaker_getter = SpeakerGetter() 
+    archive_id_list = speaker_getter.acquire_speaker_ids() 
+
     for archive_id in archive_id_list:
         try:
             print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
