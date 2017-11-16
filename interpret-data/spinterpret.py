@@ -35,18 +35,24 @@ if __name__ == "__main__":
     word_matcher.set_seq2(common_text_words)
     word_matcher.set_seq1(vary_text_words)
 
+    blob_matcher = SequenceMatcher(junk_func)
+    word_matcher.set_seq2(common_text)
+    word_matcher.set_seq1(vary_text)
+
     # overall ratio which considers slightly different words to be totally different
-    print("Overall ratio: {}".format(word_matcher.ratio()))
+    print("Overall text blob ratio: {}".format(blob_matcher.ratio()));
+    print("Word-by-word ratio: {}".format(word_matcher.ratio()));
 
     nwords = len(common_text_words)
     char_matcher = SequenceMatcher(junk_func)
     for i in range(0, nwords):
         print("== {} -> {} ==".format(common_text_words[i], vary_text_words[i]))
         char_matcher.set_seqs(common_text_words[i], vary_text_words[i])
+        print("   Similarity: {:.1%}".format(round(char_matcher.ratio(), 3)))
         for tag, a1, a2, b1, b2 in char_matcher.get_opcodes():
             # only print differences
             if tag == 'equal':
                 continue
             # longest opcode is "replace" (7 characters)
-            print("{:7}   a[{}:{}] -> b[{}:{}]   {!r} -> {!r}".format(
+            print("   {:7}   a[{}:{}] -> b[{}:{}]   {!r} -> {!r}".format(
                 tag, a1, a2, b1, b2, common_text_words[i][a1:a2], vary_text_words[i][b1:b2]))
