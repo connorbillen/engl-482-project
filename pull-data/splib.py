@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import string
+import time
+import sys
 import urllib.request
 from GMULib import SpeakerGetter
 from bs4 import BeautifulSoup
@@ -44,9 +46,14 @@ def overwrite_text(text, localpath):
     with open(localpath, "w") as target_file:
         target_file.write(text)
 
-# would extract the extension from a filename
-def extract_extension(fname):
-    return ""
+def overwrite_fave_text(id, length, text, localpath):
+    with open(localpath, "w") as target_file:
+        target_file.write("{id}\t{name}\t{start}\t{end}\t{text}".format(
+                          id=id,
+                          name="Speaker " + id,
+                          start=0,
+                          end=length,
+                          text=text))
 
 # scrapes the transcription image, speech text, and audio for a speaker and
 # stores them in the target directory
@@ -68,18 +75,25 @@ def fetch_accent_archive(speaker_id, target_directory):
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
-    overwrite_text(speech_text, target_directory + "english.txt")
+    overwrite_fave_text(speaker_id, 0, speech_text, target_directory + "english.txt")
     save_net_file(audio_url, target_directory + "audio.mp3")
     save_net_file(image_url, target_directory + "ipa.gif")
 
 if __name__ == "__main__":
-    speaker_getter = SpeakerGetter() 
-    archive_id_list = speaker_getter.acquire_speaker_ids() 
+    if (len(sys.argv) >= 2):
+        archive_id_list = sys.argv[1:]
+        print("Using provided IDs...")
+    else:
+        speaker_getter = SpeakerGetter()
+        archive_id_list = speaker_getter.acquire_speaker_ids()
+        print("Using scraped IDs...")
 
     for archive_id in archive_id_list:
         try:
             print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
             print("done.")
+            # sleeps for n seconds to avoid getting blocked
+            time.sleep(2)
         except Exception as e:
             print("Error fetching data for subject id {0}: {1}".format(86, e))
