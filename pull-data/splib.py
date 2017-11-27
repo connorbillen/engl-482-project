@@ -5,7 +5,7 @@ import time
 import sys
 import urllib.request
 from GMULib import SpeakerGetter
-from subprocess import check_output 
+from subprocess import check_output
 from bs4 import BeautifulSoup
 import os
 
@@ -19,7 +19,7 @@ def clean_string(s):
 def get_net_file_handle(fileurl):
     webfile = urllib.request.urlopen(fileurl)
     req_code = webfile.getcode()
-    
+
     if req_code < 200 or req_code >= 300:
         raise IOError("HTTP error {0} connecting to {1}".format(req_code, fileurl))
     else:
@@ -71,16 +71,16 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>audio#player>source[src]
     audio_url = soup.find("div", id="translation").find("audio", id="player").find("source")["src"]
     # div#transcript.img[src]
-    image_url = soup.find("div", id="transcript").find("img")["src"]
+    #image_url = soup.find("div", id="transcript").find("img")["src"]
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
     # command = mp3info -p "%m:%s\n" filename
-    audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0] 
+    audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0]
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
     save_net_file(audio_url, target_directory + "audio.mp3")
-    save_net_file(image_url, target_directory + "ipa.gif")
+    #save_net_file(image_url, target_directory + "ipa.gif")
 
 if __name__ == "__main__":
     if (len(sys.argv) >= 2):
@@ -91,7 +91,9 @@ if __name__ == "__main__":
         archive_id_list = speaker_getter.acquire_speaker_ids()
         print("Using scraped IDs...")
 
-    for archive_id in archive_id_list:
+    filtered_ids = [id for id in archive_id_list if len(id) > 0 && id[0] != "-"]
+
+    for archive_id in filtered_ids:
         try:
             print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
