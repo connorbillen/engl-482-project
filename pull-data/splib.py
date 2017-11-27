@@ -43,10 +43,7 @@ def save_net_file(fileurl, localpath):
                 byte = net_file_handle.read(1)
 
 # overwrite a file's contents with some text
-def overwrite_text(text, localpath):
-    with open(localpath, "w") as target_file:
-        target_file.write(text)
-
+# in the format required for FAVE-align
 def overwrite_fave_text(id, length, text, localpath):
     with open(localpath, "w") as target_file:
         target_file.write("{id}\t{name}\t{start}\t{end}\t{text}".format(
@@ -59,8 +56,8 @@ def overwrite_fave_text(id, length, text, localpath):
 # scrapes the transcription image, speech text, and audio for a speaker and
 # stores them in the target directory
 def fetch_accent_archive(speaker_id, target_directory):
-    target_directory += "/"
-    os.makedirs(target_directory, exist_ok=True)
+    target_directory += "/"     # fix the directory name so we can append to it
+    os.makedirs(target_directory, exist_ok=True)    # create the directory if it does not exist
     page_url = "http://accent.gmu.edu/browse_language.php?function=detail&speakerid={0}".format(speaker_id)
 
     # get the html
@@ -71,14 +68,17 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>audio#player>source[src]
     audio_url = soup.find("div", id="translation").find("audio", id="player").find("source")["src"]
     # div#transcript.img[src]
+    # don't bother scraping for the image since we aren;t using it with FAVE-align
     #image_url = soup.find("div", id="transcript").find("img")["src"]
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
+
+    # save the IPA image (not needed for FAVE-align)
     #save_net_file(image_url, target_directory + "ipa.gif")
     save_net_file(audio_url, target_directory + "audio.mp3")
-    # command = mp3info -p "%m:%s\n" filename
+    # command: `mp3info -p "%m:%s\n" filename`
     audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0]
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
 
