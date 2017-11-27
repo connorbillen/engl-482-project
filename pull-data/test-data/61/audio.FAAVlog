@@ -1,0 +1,14 @@
+Mon Nov 27 13:46:44 2017
+
+Alignment statistics for file audio.wav:
+
+Not using Git version control. Version info unavailable.
+Consider installing Git (http://git-scm.com/).         and cloning this repository from GitHub with: 
+          git clone git@github.com:JoFrhwld/FAVE.git
+Uncommitted changes when run:
+ collect_and_analze.sh              | 4 ++--
+ pull-data/splib.py                 | 5 ++++-
+ pull-data/test-data/61/english.txt | 2 +-
+ 3 files changed, 7 insertions(+), 4 deletions(-)
+
+Total number of words:			0

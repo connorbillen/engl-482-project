@@ -5,6 +5,7 @@ import time
 import sys
 import urllib.request
 from GMULib import SpeakerGetter
+from subprocess import check_output 
 from bs4 import BeautifulSoup
 import os
 
@@ -75,7 +76,9 @@ def fetch_accent_archive(speaker_id, target_directory):
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
-    overwrite_fave_text(speaker_id, 0, speech_text, target_directory + "english.txt")
+    # command = mp3info -p "%m:%s\n" filename
+    audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0] 
+    overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
     save_net_file(audio_url, target_directory + "audio.mp3")
     save_net_file(image_url, target_directory + "ipa.gif")
 
