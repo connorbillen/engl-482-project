@@ -76,11 +76,11 @@ def fetch_accent_archive(speaker_id, target_directory):
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
+    #save_net_file(image_url, target_directory + "ipa.gif")
+    save_net_file(audio_url, target_directory + "audio.mp3")
     # command = mp3info -p "%m:%s\n" filename
     audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0]
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
-    save_net_file(audio_url, target_directory + "audio.mp3")
-    #save_net_file(image_url, target_directory + "ipa.gif")
 
 if __name__ == "__main__":
     if (len(sys.argv) >= 2):
@@ -91,14 +91,18 @@ if __name__ == "__main__":
         archive_id_list = speaker_getter.acquire_speaker_ids()
         print("Using scraped IDs...")
 
-    filtered_ids = [id for id in archive_id_list if len(id) > 0 && id[0] != "-"]
+    filtered_ids = [id for id in archive_id_list if len(id) > 0 and id[0] != "-"]
 
+    do_sleep = False
     for archive_id in filtered_ids:
         try:
+            # sleep between requests to avoid getting blocked
+            if do_sleep:
+                time.sleep(1)
+            else:
+                do_sleep = True
             print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
             print("done.")
-            # sleeps for n seconds to avoid getting blocked
-            time.sleep(2)
         except Exception as e:
             print("Error fetching data for subject id {0}: {1}".format(86, e))
