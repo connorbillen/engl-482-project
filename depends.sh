@@ -11,6 +11,7 @@ if [ "$USE_APT" -ne "0" ]; then
     echo "Found apt command. Installing apt packages..."
     apt-get install python3
     apt-get install pip3
+    apt-get install mp3info
 else
     echo "Did not find apt command. Make sure you install the necessary packages."
 fi
