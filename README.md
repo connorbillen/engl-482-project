@@ -8,6 +8,9 @@ In order for FAVE-Align to work correctly, the `english.txt` file must be format
 Using FAVE-Align programmatically:
 > python FAAValign.py -v -i input.txt speaker1.wav speaker1.txt
 
+Command to get audio lengths (required `mp3info` installation)
+> `mp3info -p "%m:%s\n" *.mp3`
+
 http://www.dialectsarchive.com/globalmap
 
 Source of data: http://accent.gmu.edu/
