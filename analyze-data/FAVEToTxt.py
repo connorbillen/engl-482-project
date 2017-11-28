@@ -43,8 +43,9 @@ for char_info in items[0]:
         char_info[i] = char_info[i].split('= ')[1]
     
     try:
-        char = Letter(char_info[3], float(char_info[1]), float(char_info[2]))
-        letters.append(char)
+        if "sp" not in char_info[3]:
+            char = Letter(char_info[3], float(char_info[1]), float(char_info[2]))
+            letters.append(char)
     except:
         pass
 
@@ -80,5 +81,6 @@ except:
     print("Cannot write to file")
     sys.exit()
 for word in words:
-    output.write("".join(word.letters) + " ")
+    if len(word.letters) > 0:
+        output.write("".join(word.letters) + " ")
 output.close()
