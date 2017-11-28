@@ -42,6 +42,16 @@ class SpeakerGetter:
     def parse_speaker_ids(self, response):
         links = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("a"))
         inputs = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("input"))
+        ps = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("p"))
+
+        for p in ps:
+            p = str(p)
+            if "english" in p:
+                # output speaker id
+                print(p.split("speakerid=")[1].split("\"")[0])
+
+                # output speaker info
+                print(p.split("</a> ")[1].split("</p>")[0])
 
         for link in links:
             if link.has_attr("href") and "=" in link["href"]:

@@ -5,7 +5,7 @@ import time
 import sys
 import urllib.request
 from GMULib import SpeakerGetter
-from subprocess import check_output
+from mutagen.mp3 import MP3
 from bs4 import BeautifulSoup
 import os
 
@@ -71,15 +71,15 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>audio#player>source[src]
     audio_url = soup.find("div", id="translation").find("audio", id="player").find("source")["src"]
     # div#transcript.img[src]
-    #image_url = soup.find("div", id="transcript").find("img")["src"]
+    image_url = soup.find("div", id="transcript").find("img")["src"]
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
     # saves the data to files
-    #save_net_file(image_url, target_directory + "ipa.gif")
+    save_net_file(image_url, target_directory + "ipa.gif")
     save_net_file(audio_url, target_directory + "audio.mp3")
     # command = mp3info -p "%m:%s\n" filename
-    audio_length = check_output(["mp3info", "-p", "%s\n", target_directory + "audio.mp3"]).decode("utf-8").split()[0]
+    audio_length = MP3(target_directory + "audio.mp3").info.length
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
 
 if __name__ == "__main__":
