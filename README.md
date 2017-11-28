@@ -2,15 +2,11 @@
 Analyzing the phonetic differences between common phonemes per region.
 
 FAVE-align: http://fave.ling.upenn.edu/
-In order for FAVE-Align to work correctly, the `english.txt` file must be formatted as follows:
-> Transcription text file should consist of 5 columns: speaker ID, speaker name, beginning and end of annotation unit in seconds, transcription text.
-
-Using FAVE-Align programmatically:
-> python FAAValign.py -v -i input.txt speaker1.wav speaker1.txt
-
-Command to get audio lengths (required `mp3info` installation)
-> `mp3info -p "%m:%s\n" *.mp3`
-
-http://www.dialectsarchive.com/globalmap
-
 Source of data: http://accent.gmu.edu/
+
+To collect the data and run FAVE-Align, run:
+> collect.sh
+Please note: This requires `ffmpeg` and `HTK-3.4` to be installed
+
+To convert the TextGrid files to readable text files:
+> analyze.sh

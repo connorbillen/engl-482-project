@@ -516,14 +516,14 @@ class IntervalTier:
         self.__intervals.sort(key = f)
 
     def extend(self, newmin, newmax):
+        ## allow extensions to "contract" the TextGrid
+        ## for example, the old maximum might be derived from a faulty input file (last interval longer than sound file)
+        ## but the new maximum is from the length of the sound file, which is the correct value to use
+        ## therefore, just print a warning message, but continue
         if newmin > self.__xmin:
-            print "newmin:  ", newmin
-            print "self.__xmin", self.__xmin
-            sys.exit("Error!  New minimum of tier exceeds old minimum.")
+            print "ERROR!  New minimum of tier (%s) exceeds old minimum (%)." % (newmin, self.__xmin)
         if newmax < self.__xmax:
-            print "newmax:  ", newmax
-            print "self.__xmax:  ", self.__xmax
-            sys.exit("Error!  New maximum of tier is less than old maximum.")
+            print "ERROR!  New maximum of tier (%s) is less than old maximum (%s)." % (newmax, self.__xmax)
         self.__xmin = newmin
         self.__xmax = newmax
         ## add new intervals at beginning and end

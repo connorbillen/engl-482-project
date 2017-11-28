@@ -56,9 +56,6 @@ Options:
 
 -n, --noprompt ("no prompt"):
 
--t HTKTOOLSPATH, --htktoolspath=HTKTOOLSPATH
-    Specifies the path to the HTKTools directory where the HTK executable files are located.  If not specified, the user's path will be searched for the location of the executable.
-
     User is not prompted for the transcription of words not in the dictionary, or truncated words.  Unknown words are ignored by the aligner.
 """
 
@@ -66,11 +63,11 @@ Options:
 ## PROJECT "AUTOMATIC ALIGNMENT AND ANALYSIS OF LINGUISTIC CHANGE"            ##
 ## FAAValign.py                                                               ##
 ## written by Ingrid Rosenfelder                                              ##
+## last updated June 26, 2013                                                 ##
 ################################################################################
 
 import os
 import sys
-import shutil
 import re
 import wave
 import optparse
@@ -79,8 +76,7 @@ import praat
 import subprocess
 import traceback
 import codecs
-import subprocess
-import string
+import mimetypes
 
 truncated = re.compile(r'\w+\-$')                       ## truncated words
 intended = re.compile(r'^\+\w+')                        ## intended word (inserted by transcribers after truncated word)
@@ -178,23 +174,24 @@ def align(wavfile, trs_input, outfile, FADIR='', SOXPATH='', HTKTOOLSPATH=''):
     ## - "tmp.plp"
     ## - "tmp.wav"
     
-    # create working directory  
-    os.mkdir("./tmp" + identifier)
-    # prepare wavefile
-    SR = prep_wav(wavfile, './tmp' + identifier + '/tmp' + identifier + '.wav', SOXPATH)
+    try:  ## move beginning of try-except statement up to here, because things can go wrong even before the alignment proper!
 
-    # prepare mlfile
-    prep_mlf(trs_input, './tmp' + identifier + '/tmp' + identifier + '.mlf', identifier)
- 
-    # prepare scp files
-    fw = open('./tmp' + identifier + '/codetr' + identifier + '.scp', 'w')
-    fw.write('./tmp' + identifier + '/tmp' + identifier + '.wav ./tmp' + identifier + '/tmp'+ identifier + '.plp\n')
-    fw.close()
-    fw = open('./tmp' + identifier + '/test' + identifier + '.scp', 'w')
-    fw.write('./tmp' + identifier +'/tmp' + identifier + '.plp\n')
-    fw.close()
+        # create working directory  
+        os.system("mkdir ./tmp" + identifier)
+        # prepare wavefile
+        SR = prep_wav(wavfile, './tmp' + identifier + '/tmp' + identifier + '.wav', SOXPATH)
 
-    try:
+        # prepare mlfile
+        prep_mlf(trs_input, './tmp' + identifier + '/tmp' + identifier + '.mlf', identifier)
+     
+        # prepare scp files
+        fw = open('./tmp' + identifier + '/codetr' + identifier + '.scp', 'w')
+        fw.write('./tmp' + identifier + '/tmp' + identifier + '.wav ./tmp' + identifier + '/tmp'+ identifier + '.plp\n')
+        fw.close()
+        fw = open('./tmp' + identifier + '/test' + identifier + '.scp', 'w')
+        fw.write('./tmp' + identifier +'/tmp' + identifier + '.plp\n')
+        fw.close()
+
         # call plp.sh and align.sh
         if HTKTOOLSPATH:  ## if absolute path to HTK Toolkit is given
             os.system(os.path.join(HTKTOOLSPATH, 'HCopy') + ' -T 1 -C ./model/' + str(SR) + '/config -S ./tmp' + identifier + '/codetr' + identifier + '.scp >> ./tmp' + identifier + '/blubbeldiblubb.txt')
@@ -209,15 +206,16 @@ def align(wavfile, trs_input, outfile, FADIR='', SOXPATH='', HTKTOOLSPATH=''):
         aligned_to_TextGrid('./tmp' + identifier + '/aligned' + identifier + '.mlf', outfile, SR)
         if options.verbose:
             print "\tForced alignment called successfully for file %s." % os.path.basename(wavfile)
+            
     except Exception, e:
         FA_error = "Error in aligning file %s:  %s." % (os.path.basename(wavfile), e)
         ## clean up temporary alignment files
-        shutil.rmtree("./tmp" + identifier)
+        os.system("rm -r -f ./tmp" + identifier)
         raise Exception, FA_error
         ##errorhandler(FA_error)
 
     ## remove tmp directory and all files        
-    shutil.rmtree("./tmp" + identifier)
+    os.system("rm -r -f ./tmp" + identifier)
     
 
 ## This function is from Jiahong Yuan's align.py
@@ -507,23 +505,6 @@ def check_transcription(w):
         
     return final_trans
 
-# substitute any 'smart' quotes in the input file with the corresponding
-# ASCII equivalents (otherwise they will be excluded as out-of-
-# vocabulary with respect to the CMU pronouncing dictionary)
-# WARNING: this function currently only works for UTF-8 input
-def replace_smart_quotes(all_input):
-  cleaned_lines = []
-  for line in all_input:
-    line = line.replace(u'\u2018', "'")
-    line = line.replace(u'\u2019', "'")
-    line = line.replace(u'\u201a', "'")
-    line = line.replace(u'\u201b', "'")
-    line = line.replace(u'\u201c', '"')
-    line = line.replace(u'\u201d', '"')
-    line = line.replace(u'\u201e', '"')
-    line = line.replace(u'\u201f', '"')
-    cleaned_lines.append(line)
-  return cleaned_lines
 
 def check_transcription_file(all_input):
     """checks the format of the input transcription file and returns a list of empty lines to be deleted from the input"""
@@ -669,7 +650,10 @@ def check_word(word, next_word='', unknown={}, line=''):
             else:
                 unknown[word] = ("", "", line)
             if options.verbose:
-                print "\tUnknown word %s : %s." % (word.encode('ascii', 'replace'), line.encode('ascii', 'replace'))
+                try:
+                    print "\tUnknown word %s : %s." % (word.encode('ascii', 'replace'), line.encode('ascii', 'replace'))
+                except UnicodeDecodeError:
+                    print "\tUnknown word %s : %s." % (word, line)
 
         ## otherwise, promput user for Arpabet transcription of missing word
         elif not options.noprompt:
@@ -734,7 +718,6 @@ def define_options_and_arguments():
     verbose_help = """Detailed output on status of dictionary check and alignment progress."""
     dict_help = """Specifies the name of the file containing the pronunciation dictionary.  Default file is "/model/dict"."""
     noprompt_help = """User is not prompted for the transcription of words not in the dictionary, or truncated words.  Unknown words are ignored by the aligner."""
-    htktoolspath_help = """Specifies the path to the HTKTools directory where the HTK executable files are located.  If not specified, the user's path will be searched for the location of the executable."""
 
     parser = optparse.OptionParser(usage=new_use, description=new_desc, epilog=new_ep, version=vers)
     parser.add_option('-c', '--check', help=check_help, metavar='FILENAME')                        ## required argument FILENAME
@@ -742,7 +725,6 @@ def define_options_and_arguments():
     parser.add_option('-v', '--verbose', action='store_true', default=False, help=verbose_help)
     parser.add_option('-d', '--dict', default='model/dict', help=dict_help, metavar='FILENAME')
     parser.add_option('-n', '--noprompt', action='store_true', default=False, help=noprompt_help)
-    parser.add_option('-t', '--htktoolspath', default='', help=htktoolspath_help, metavar='HTKTOOLSPATH')
 
     ## After parsing with (options, args) = parser.parse_args(), options are accessible via
     ## - string options.check (default:  None)
@@ -840,7 +822,7 @@ def get_duration(soundfile, FADIR=''):
 def is_sound(f):
     """checks whether a file is a .wav sound file"""
     
-    if f.lower().endswith('.wav'):
+    if re.search("\.wav$", f.lower()) and mimetypes.guess_type(f)[0] == "audio/x-wav":
 ## NOTE:  This is the old version of the file check using a call to 'file' via the command line
 ##    and ("audio/x-wav" in subprocess.Popen('file -bi "%s"' % f, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 ##                                           or "audio/x-wav" in subprocess.Popen('file -bI "%s"' % f, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()):
@@ -855,7 +837,7 @@ def is_sound(f):
 def is_text(f):
     """checks whether a file is a .txt text file"""
     
-    if f.lower().endswith('.txt'):
+    if re.search("\.txt$", f.lower()) and mimetypes.guess_type(f)[0] == "text/plain":
 ## NOTE:  This is the old version of the file check using a call to 'file' via the command line
 ##    and ("text/plain" in subprocess.Popen('file -bi "%s"' % f, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 ##                                           or "text/plain" in subprocess.Popen('file -bI "%s"' % f, shell=True, stdout=subprocess.PIPE).communicate()[0].strip()):
@@ -873,27 +855,27 @@ def is_TextGrid(f):
         return False
 
 
-# def make_tempdir(tempdir):
-#     """creates a temporary directory for all alignment "chunks";
-#     warns against overwriting existing files if applicable"""
+def make_tempdir(tempdir):
+    """creates a temporary directory for all alignment "chunks";
+    warns against overwriting existing files if applicable"""
     
-#     ## check whether directory already exists and has files in it
-#     if os.path.isdir(tempdir):
-#         contents = os.listdir(tempdir)
-#         if len(contents) != 0 and not options.noprompt:
-#             print "WARNING!  Directory %s already exists and is non-empty!" % tempdir
-#             print "(Files in directory:  %s )" % contents
-#             overwrite = raw_input("Overwrite and continue?  [y/n]")
-#             if overwrite == "y":
-#                 ## delete contents of tempdir
-#                 for item in contents:
-#                     os.remove(os.path.join(tempdir, item))
-#             elif overwrite == "n":
-#                 sys.exit("Exiting program.")
-#             else:
-#                 sys.exit("Undecided user.  Exiting program.")
-#     else:
-#         os.mkdir(tempdir)
+    ## check whether directory already exists and has files in it
+    if os.path.isdir(tempdir):
+        contents = os.listdir(tempdir)
+        if len(contents) != 0 and not options.noprompt:
+            print "WARNING!  Directory %s already exists and is non-empty!" % tempdir
+            print "(Files in directory:  %s )" % contents
+            overwrite = raw_input("Overwrite and continue?  [y/n]")
+            if overwrite == "y":
+                ## delete contents of tempdir
+                for item in contents:
+                    os.remove(os.path.join(tempdir, item))
+            elif overwrite == "n":
+                sys.exit("Exiting program.")
+            else:
+                sys.exit("Undecided user.  Exiting program.")
+    else:
+        os.mkdir(tempdir)
 
 
 def check_tempdir(tempdir):
@@ -985,7 +967,7 @@ def preprocess_transcription(line, flag_uncertain, last_beg_uncertain, last_end_
     ## delete initial apostrophes
     line = re.compile(r"(\s|^)'\b").sub(" ", line)
     ## delete variable coding for consonant cluster reduction
-    line = re.compile(r"\d\w(\w)?").sub(" ", line)
+    line = re.compile(r"\d[a-zA-Z]([a-zA-Z])?").sub(" ", line)
     ## replace unclear transcription markup (empty parentheses):
     line = unclear.sub('((xxxx))', line)
     ## correct another transcription error:  truncation dash outside of double parentheses will become a word
@@ -1173,23 +1155,22 @@ def read_transcription_file(trsfile):
 
     try:  ## try UTF-16 encoding first
         t = codecs.open(trsfile, 'rU', encoding='utf-16')
-        print "Encoding is UTF-16!"
         lines = t.readlines()
+        print "Encoding is UTF-16!"
     except UnicodeError:
         try:  ## then UTF-8...
             t = codecs.open(trsfile, 'rU', encoding='utf-8')
-            print "Encoding is UTF-8!"
             lines = t.readlines()
-            lines = replace_smart_quotes(lines)
+            print "Encoding is UTF-8!"
         except UnicodeError:
             try:  ## then Windows encoding...
                 t = codecs.open(trsfile, 'rU', encoding='windows-1252')
-                print "Encoding is Windows-1252!"
                 lines = t.readlines()
+                print "Encoding is Windows-1252!"
             except UnicodeError:
                 t = open(trsfile, 'rU')
-                print "Encoding is ASCII!"
                 lines = t.readlines()
+                print "Encoding is ASCII!"
 
     return lines
 
@@ -1258,13 +1239,13 @@ def reinsert_uncertain(tg, text):
     return tg
 
 
-# def remove_tempdir(tempdir):
-#     """removes the temporary directory and all its contents"""
+def remove_tempdir(tempdir):
+    """removes the temporary directory and all its contents"""
     
-#     for item in os.listdir(tempdir):
-#         os.remove(os.path.join(tempdir, item))
-#     os.removedirs(tempdir)
-#     os.remove("blubbeldiblubb.txt")
+    for item in os.listdir(tempdir):
+        os.remove(os.path.join(tempdir, item))
+    os.removedirs(tempdir)
+    os.remove("blubbeldiblubb.txt")
 
  
 def replace_extension(filename, newextension):
@@ -1273,13 +1254,13 @@ def replace_extension(filename, newextension):
     return os.path.splitext(filename)[0] + newextension
 
 
-# def empty_tempdir(tempdir):
-#     """empties the temporary directory of all files"""
-#     ## (NOTE:  This is a modified version of remove_tempdir)
+def empty_tempdir(tempdir):
+    """empties the temporary directory of all files"""
+    ## (NOTE:  This is a modified version of remove_tempdir)
     
-#     for item in os.listdir(tempdir):
-#         os.remove(os.path.join(tempdir, item))
-#     os.remove("blubbeldiblubb.txt")
+    for item in os.listdir(tempdir):
+        os.remove(os.path.join(tempdir, item))
+    os.remove("blubbeldiblubb.txt")
 
 
 def tidyup(tg, beg, end, tgfile):
@@ -1362,10 +1343,10 @@ def write_alignment_errors_to_log(tgfile, failed_alignment):
     errorlog.write("Alignment failed for the following annotation units:  \n")
     errorlog.write("#\tbeginning\tend\tspeaker\ttext\n")
     for f in failed_alignment:
-#        try:
-        errorlog.write('\t'.join(f).encode('ascii', 'replace'))
-#        except UnicodeDecodeError:
-#            errorlog.write('\t'.join(f))
+        try:
+            errorlog.write('\t'.join(f).encode('ascii', 'replace'))
+        except UnicodeDecodeError:
+            errorlog.write('\t'.join(f))
         errorlog.write('\n')
     errorlog.close()
     print "Alignment errors saved to file %s." % logname
@@ -1379,45 +1360,19 @@ def write_log(filename, wavfile, duration):
     f.write(t_stamp)
     f.write("\n\n")
     f.write("Alignment statistics for file %s:\n\n" % os.path.basename(wavfile))
-
-    try:
-        check_version = subprocess.Popen(["git","describe", "--tags"], stdout = subprocess.PIPE)
-        version,err = check_version.communicate()
-        version = version.rstrip()
-    except OSError:
-        version = None
-
-    if version:
-        f.write("version info from Git: %s"%version)
-        f.write("\n")
-    else:
-        f.write("Not using Git version control. Version info unavailable.\n")
-        f.write("Consider installing Git (http://git-scm.com/).\
-         and cloning this repository from GitHub with: \n \
-         git clone git@github.com:JoFrhwld/FAVE.git")
-        f.write("\n")
-
-    try:
-        check_changes = subprocess.Popen(["git", "diff", "--stat"], stdout = subprocess.PIPE)
-        changes, err = check_changes.communicate()
-    except OSError:
-        changes = None
-
-    if changes:
-        f.write("Uncommitted changes when run:\n")
-        f.write(changes)
-        
-    f.write("\n")
     f.write("Total number of words:\t\t\t%i\n" % count_words)
-    f.write("Uncertain transcriptions:\t\t%i\t(%.1f%%)\n" % (count_uncertain, float(count_uncertain)/float(count_words)*100))
-    f.write("Unclear passages:\t\t\t%i\t(%.1f%%)\n" % (count_unclear, float(count_unclear)/float(count_words)*100))
+    if count_words:
+        f.write("Uncertain transcriptions:\t\t%i\t(%.1f%%)\n" % (count_uncertain, float(count_uncertain)/float(count_words)*100))
+        f.write("Unclear passages:\t\t\t%i\t(%.1f%%)\n" % (count_unclear, float(count_unclear)/float(count_words)*100))
     f.write("\n")
     f.write("Number of breath groups aligned:\t%i\n" % count_chunks)
     f.write("Duration of sound file:\t\t\t%.3f seconds\n" % duration)
     f.write("Total time for alignment:\t\t%.2f seconds\n" % (times[-1][2] - times[1][2]))
     f.write("Total time since beginning of program:\t%.2f seconds\n\n" % (times[-1][2] - times[0][2]))
-    f.write("->\taverage alignment duration:\t%.3f seconds per breath group\n" % ((times[-1][2] - times[1][2])/count_chunks))
-    f.write("->\talignment rate:\t\t\t%.3f times real time\n" % ((times[-1][2] - times[0][2])/duration))
+    if count_chunks:
+        f.write("->\taverage alignment duration:\t%.3f seconds per breath group\n" % ((times[-1][2] - times[1][2])/count_chunks))
+    if duration:
+        f.write("->\talignment rate:\t\t\t%.3f times real time\n" % ((times[-1][2] - times[0][2])/duration))
     f.write("\n\n")
     f.write("Alignment statistics:\n\n")
     f.write("Chunk\tCPU time\treal time\td(CPU)\td(time)\n")
@@ -1478,7 +1433,7 @@ def write_words(out, unknown):
 ################################################################################
 
 
-def FAAValign(opts, args, FADIR='', SOXPATH=''):
+def FAAValign(opts, args, FADIR='', SOXPATH='', HTKTOOLSPATH=''):
     """runs the forced aligner for the arguments given"""
 
     tempdir = os.path.join(FADIR, TEMPDIR)
@@ -1524,8 +1479,6 @@ def FAAValign(opts, args, FADIR='', SOXPATH=''):
     count_unclear = 0
     style_tier = None
     failed_alignment = []
-
-    HTKTOOLSPATH = options.htktoolspath
 
     ## check correct format of input file; get list of transcription lines
     ## (this function skips empty annotation units -> lines to be deleted)
@@ -1611,12 +1564,15 @@ def FAAValign(opts, args, FADIR='', SOXPATH=''):
                 print "\tERROR!  Alignment failed for chunk %i (speaker %s, text %s)." % (count_chunks, speaker, " ".join(text))
             except (UnicodeDecodeError, UnicodeEncodeError): 
                 print "\tERROR!  Alignment failed for chunk %i (speaker %s, text %s)." % (count_chunks, speaker, " ".join(text).encode('ascii', 'replace'))
-            print "\n", traceback.format_exc(), "\n"
+            print "\n", traceback.format_exc()
             print "\tContinuing alignment..."
             failed_alignment.append([str(count_chunks), str(beg), str(end), speaker, " ".join(text)])
             ## remove temp files
-            os.remove(os.path.join(tempdir, chunkname_sound))
-            os.remove(os.path.join(tempdir, chunkname_textgrid))
+            try:
+                os.remove(os.path.join(tempdir, chunkname_sound))
+                os.remove(os.path.join(tempdir, chunkname_textgrid))
+            except OSError, e:
+                print "\tERROR! Could not remove temporary file(s): \n%s" % traceback.format_exc()
             continue
            
         ## read TextGrid output of forced alignment
