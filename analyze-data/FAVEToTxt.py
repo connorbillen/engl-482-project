@@ -33,7 +33,7 @@ for i in range(len(items)):
 
 # Parse out the letters 
 letters = []
-# itemes[0] is the character level
+# items[0] is the character level
 for char_info in items[0]:
     char_info = char_info.split('\n')
     for i in range(len(char_info)):
