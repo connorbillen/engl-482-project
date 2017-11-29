@@ -13,3 +13,10 @@ To convert the TextGrid files to readable text files:
 > analyze.sh
 
 Mapping the data requires the latest version of Basemap for Matplotlib to be installed
+
+Final paper improvements
+- Geography density plot (dot stacks)
+- Socio vars (gender, age)
+- Package dependencies/executable
+- Choice of words
+- Error rate
