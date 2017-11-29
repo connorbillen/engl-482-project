@@ -4,6 +4,7 @@ import string
 import time
 import sys
 import urllib.request
+from geopy import Nominatim
 from GMULib import SpeakerGetter
 from mutagen.mp3 import MP3
 from bs4 import BeautifulSoup
@@ -56,6 +57,7 @@ def overwrite_fave_text(id, length, text, localpath):
 # scrapes the transcription image, speech text, and audio for a speaker and
 # stores them in the target directory
 def fetch_accent_archive(speaker_id, target_directory):
+    gn = Nominatim()
     target_directory += "/"     # fix the directory name so we can append to it
     os.makedirs(target_directory, exist_ok=True)    # create the directory if it does not exist
     page_url = "http://accent.gmu.edu/browse_language.php?function=detail&speakerid={0}".format(speaker_id)
@@ -85,8 +87,11 @@ def fetch_accent_archive(speaker_id, target_directory):
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
 
     # write the location
+    geo_location = gn.geocode(location)
     location_txt = open(target_directory + 'location.txt', 'w')
     location_txt.write(location)
+    location_txt.write(str(geo_location.latitude) + ',' + str(geo_location.longitude))
+    print(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     location_txt.close()
 
 if __name__ == "__main__":
@@ -108,7 +113,7 @@ if __name__ == "__main__":
                 time.sleep(1)
             else:
                 do_sleep = True
-            print("Fetching data for archive entry ({0})...".format(archive_id), end="", flush=True)
+            print("Fetching data for archive entry ({0})...\n".format(archive_id), end="", flush=True)
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
             print("done.")
         except Exception as e:

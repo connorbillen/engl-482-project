@@ -8,6 +8,7 @@ class SpeakerGetter:
         self.speaker_list = []
         self.counter = []
         self.url = "http://accent.gmu.edu/searchsaa.php" 
+        self.s = requests.Session()
 
         self.params = {
             "function": "find",
@@ -36,10 +37,10 @@ class SpeakerGetter:
         }
 
     def acquire_speaker_ids(self): 
-        response = requests.post(self.url, data=self.params)
-        return self.parse_speaker_ids(response.text)
+        response = self.s.post(self.url, data=self.params)
+        return self.parse_speaker_ids(response.text, 0)
  
-    def parse_speaker_ids(self, response):
+    def parse_speaker_ids(self, response, count):
         links = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("a"))
         inputs = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("input"))
         ps = BeautifulSoup(response, "html.parser", parse_only=SoupStrainer("p"))
@@ -49,7 +50,7 @@ class SpeakerGetter:
             if "english" in p:
                 pass
                 # output speaker id
-                # print(p.split("speakerid=")[1].split("\"")[0])
+                print(p.split("speakerid=")[1].split("\"")[0])
 
                 # output speaker info
                 # print(p.split("</a> ")[1].split("</p>")[0])
@@ -62,7 +63,14 @@ class SpeakerGetter:
         for input in inputs:
             if input.has_attr("value"):
                 if "Next" in input["value"]:
-                    print("More data available")
+                    print('Next 30...')
+                    if count == 0:
+                        response = self.s.get(self.url + '?function=find&start=31')
+                        print(response.text)
+                        print(self.url + '?function=find&start=31')
+                    else:
+                        response = self.s.get(self.url + '?function=find&start=' + str(count + 1))
+                    list_ = self.parse_speaker_ids(response.text, count + 30)
 
         return self.speaker_list
 
