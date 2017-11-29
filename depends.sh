@@ -18,4 +18,4 @@ else
 fi
 
 echo "Installing pip3 packages..."
-pip3 install bs4 mutagen
+pip3 install bs4 mutagen geopy
