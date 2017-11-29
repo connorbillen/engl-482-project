@@ -73,6 +73,9 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
+    location = str(soup.find('div', id='wrapper').find('div', id='sidebar').find('ul', class_='bio').find('li')).split('</em> ')[1].split(' <a')[0]
+    print(location)
+
     # saves the data to files
     # save the IPA image (not needed for FAVE-align)
     # save_net_file(image_url, target_directory + "ipa.gif")
@@ -80,6 +83,11 @@ def fetch_accent_archive(speaker_id, target_directory):
     # command: `mp3info -p "%m:%s\n" filename`
     audio_length = MP3(target_directory + "audio.mp3").info.length
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
+
+    # write the location
+    location_txt = open(target_directory + 'location.txt', 'w')
+    location_txt.write(location)
+    location_txt.close()
 
 if __name__ == "__main__":
     if (len(sys.argv) >= 2):

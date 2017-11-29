@@ -47,11 +47,12 @@ class SpeakerGetter:
         for p in ps:
             p = str(p)
             if "english" in p:
+                pass
                 # output speaker id
-                print(p.split("speakerid=")[1].split("\"")[0])
+                # print(p.split("speakerid=")[1].split("\"")[0])
 
                 # output speaker info
-                print(p.split("</a> ")[1].split("</p>")[0])
+                # print(p.split("</a> ")[1].split("</p>")[0])
 
         for link in links:
             if link.has_attr("href") and "=" in link["href"]:
