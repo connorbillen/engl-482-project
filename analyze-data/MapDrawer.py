@@ -12,7 +12,7 @@ class MapDrawer:
        
     def add_points(self, lats, lons):
         lons, lats = self.m(lons, lats)
-        self.m.scatter(lons, lats, marker='o', color='r', zorder=5, s=8)
+        self.m.scatter(lons, lats, marker='o', color=self.colors[self.color_i], zorder=5, s=8)
         self.color_i = self.color_i + 1
 
     def draw(self):
