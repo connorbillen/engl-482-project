@@ -89,7 +89,7 @@ def fetch_accent_archive(speaker_id, target_directory):
     # write the location
     geo_location = gn.geocode(location)
     location_txt = open(target_directory + 'location.txt', 'w')
-    location_txt.write(location)
+    location_txt.write(location + "\n")
     location_txt.write(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     print(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     location_txt.close()
