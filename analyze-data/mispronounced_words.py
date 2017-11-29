@@ -4,7 +4,7 @@ import os
 import sys
 from MapDrawer import MapDrawer
 
-md = MapDrawer('Test Map')
+md = MapDrawer('All Transcription Locations')
 english_words = open('../test-data/english.txt').read()
 words = [] 
 lengths = {} 
@@ -13,6 +13,7 @@ for speaker in os.listdir('../test-data/'):
     try:
         transcription = open('../test-data/' + speaker + '/audio_arpabet.txt').read() 
     except:
+        print('transcription isn\'t there')
         continue
 
     try:
