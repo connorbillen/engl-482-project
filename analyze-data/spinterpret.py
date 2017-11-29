@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
 import string
-from difflib import SequenceMatcher, get_close_matches
+from difflib import SequenceMatcher
+from FAVEToTxt import Letter, Word
 
 # similarity ratio used to determine if two things are probably "the same"
 CLOSE_ENOUGH = 0.6
 
 # useful difflib functions:
-# get_close_matches -> finds all elements in a list that are "similar" to a value
 # SequenceMatcher.ratio -> measures how similar two sequences are as a float in [0, 1]
 #   rule of thumb: ratio over .6 is close
 # SequenceMatcher.get_matching_blocks -> get matching subsequences between two values
@@ -56,3 +56,30 @@ if __name__ == "__main__":
             # longest opcode is "replace" (7 characters)
             print("   {:7}   a[{}:{}] -> b[{}:{}]   {!r} -> {!r}".format(
                 tag, a1, a2, b1, b2, common_text_words[i][a1:a2], vary_text_words[i][b1:b2]))
+
+# gets word-by-word opcodes for a transcription
+def getOpcodes(standard_words, regional_words):
+    junk_func = lambda x: x.isspace()
+    word_matcher = SequenceMatcher(junk_func)
+
+    opcodes = []
+    for (standard_word, regional_word) in zip(standard_words, regional_words):
+        standard_letters = [letter.char for letter in standard_word.letters]
+        regional_letters = [letter.char for letter in regional_word.letters]
+        word_matcher.set_seq1(standard_letters)
+        word_matcher.set_seq2(regional_letters)
+        opcodes.append(word_matcher.get_opcodes())
+        # similarity factor: word_matcher.ratio()
+
+    return opcodes;
+
+# gets a list of the indices of words that differ
+def getDifferentWordIndices(standard_words, regional_words):
+    diff_indices = []
+    for index, (standard_word, regional_word) in enumerate(zip(standard_words, regional_words)):
+        standard_letters = [letter.char for letter in standard_word.letters]
+        regional_letters = [letter.char for letter in regional_word.letters]
+        if standard_letters != regional_letters:
+            diff_indices.append(index)
+
+    return diff_indices
