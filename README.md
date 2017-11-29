@@ -11,3 +11,5 @@ Please note: This requires `ffmpeg` and `HTK-3.4` to be installed
 
 To convert the TextGrid files to readable text files:
 > analyze.sh
+
+Mapping the data requires the latest version of Basemap for Matplotlib to be installed
