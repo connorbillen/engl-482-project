@@ -3,6 +3,7 @@
 import string
 import time
 import sys
+import re
 import urllib.request
 from geopy import Nominatim
 from GMULib import SpeakerGetter
@@ -54,6 +55,20 @@ def overwrite_fave_text(id, length, text, localpath):
                           end=length,
                           text=text))
 
+# extracts age and gender from the bs4 bio <ul> element as a dict
+# (note that male is True, female is False)
+def extract_bio_data(bio_el):
+    location = str(bio_el.find("li")).split("</em>")[1].split("<a")[0].strip()
+    age_and_gender_list = str(bio_el.findAll("li")[3]).split("</em> ")[1].split(",")
+    age = int(age_and_gender_list[0].strip())
+    # maybe startswith('m') would be good enough...
+    gender = age_and_gender_list[1].strip().lower().startswith("male")
+    return {
+        'age' : age,
+        'gender' : gender,
+        'location' : location
+    }
+
 # scrapes the transcription image, speech text, and audio for a speaker and
 # stores them in the target directory
 def fetch_accent_archive(speaker_id, target_directory):
@@ -75,8 +90,9 @@ def fetch_accent_archive(speaker_id, target_directory):
     # div#translation>p.transtext
     speech_text = clean_string(soup.find("div", id="translation").find("p", class_="transtext").string)
 
-    location = str(soup.find('div', id='wrapper').find('div', id='sidebar').find('ul', class_='bio').find('li')).split('</em> ')[1].split(' <a')[0]
-    print(location)
+    bio_element = soup.find('div', id='wrapper').find('div', id='sidebar').find('ul', class_='bio')
+    bio_data = extract_bio_data(bio_element)
+    print("{}, {}, {}".format(bio_data['location'], bio_data['age'], bio_data['gender']))
 
     # saves the data to files
     # save the IPA image (not needed for FAVE-align)
@@ -87,9 +103,9 @@ def fetch_accent_archive(speaker_id, target_directory):
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
 
     # write the location
-    geo_location = gn.geocode(location)
+    geo_location = gn.geocode(bio_data['location'])
     location_txt = open(target_directory + 'location.txt', 'w')
-    location_txt.write(location + "\n")
+    location_txt.write(bio_data['location'] + "\n")
     location_txt.write(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     print(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     location_txt.close()
@@ -117,4 +133,4 @@ if __name__ == "__main__":
             fetch_accent_archive(archive_id, "test-data/{0}".format(archive_id))
             print("done.")
         except Exception as e:
-            print("Error fetching data for subject id {0}: {1}".format(86, e))
+            print("Error fetching data for subject id {0}: {1}".format(archive_id, e))
