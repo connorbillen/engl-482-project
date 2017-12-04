@@ -98,7 +98,6 @@ def fetch_accent_archive(speaker_id, target_directory):
     # save the IPA image (not needed for FAVE-align)
     # save_net_file(image_url, target_directory + "ipa.gif")
     save_net_file(audio_url, target_directory + "audio.mp3")
-    # command: `mp3info -p "%m:%s\n" filename`
     audio_length = MP3(target_directory + "audio.mp3").info.length
     overwrite_fave_text(speaker_id, audio_length, speech_text, target_directory + "english.txt")
 

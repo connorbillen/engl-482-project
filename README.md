@@ -20,3 +20,18 @@ Final paper improvements
 - Package dependencies/executable
 - Choice of words
 - Error rate
+
+Requirements:
+    Programs:
+        python3
+        pip3
+        Bash-compatible shell (for .sh scripts)
+        ffmpeg
+        HTK 3.4
+    Python libraries:
+        FAVE-align (not a pip package)
+        matplotlib
+        mpl_toolkits (extension to matplotlib)
+        geopy
+        bs4 (BeautifulSoup 4)
+        mutagen
