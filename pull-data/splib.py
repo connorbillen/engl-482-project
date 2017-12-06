@@ -109,6 +109,11 @@ def fetch_accent_archive(speaker_id, target_directory):
     print(str(geo_location.latitude) + ',' + str(geo_location.longitude))
     location_txt.close()
 
+    # write the sociolinguistic values
+    socio_txt = open(target_directory + 'socio.txt', 'w')
+    socio_txt.write("{}\n{}".format(bio_data['age'], bio_data['gender']))
+    socio_txt.close()
+
 if __name__ == "__main__":
     if (len(sys.argv) >= 2):
         archive_id_list = sys.argv[1:]
