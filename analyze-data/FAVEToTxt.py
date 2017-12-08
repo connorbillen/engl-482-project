@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import re
 import sys
+import pickle
 
 class Letter():
     def __init__(self, char, start, end):
@@ -84,3 +85,5 @@ for word in words:
     if len(word.letters) > 0:
         output.write("".join(word.letters) + " ")
 output.close()
+
+pickle.dump(words, open(sys.argv[2] + '.pkl', 'wb'))
