@@ -73,7 +73,7 @@ for word in words:
         if letter.start < word.start or letter.end > word.end:
             continue
 
-        word.letters.append(letter.char[1:-1])
+        word.letters.append(letter)
 
 # Write ARPABet words to file, space separated
 try:
@@ -83,7 +83,10 @@ except:
     sys.exit()
 for word in words:
     if len(word.letters) > 0:
-        output.write("".join(word.letters) + " ")
+        for letter in word.letters:
+            output.write(letter.char[1:-1])
+
+    output.write(" ")
 output.close()
 
 pickle.dump(words, open(sys.argv[2] + '.pkl', 'wb'))
