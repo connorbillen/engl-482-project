@@ -88,4 +88,7 @@ for vowel in vowel_length:
 vowel_length_frame = pd.DataFrame(data=vowel_length).T 
 print(vowel_length_frame)
 vowel_length_frame.plot.bar()
-plt.show()
+plt.xlabel('Vowel')
+plt.ylabel('Average Length in Milliseconds')
+plt.title('Average Vowel Length by Speaker Gender')
+plt.savefig('gender_vowel_length.png')
